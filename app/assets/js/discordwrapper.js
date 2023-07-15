@@ -1,15 +1,15 @@
 // Work in progress
-const { LoggerUtil } = require('helios-core')
+const {LoggerUtil} = require('rgblauncher-core')
 
 const logger = LoggerUtil.getLogger('DiscordWrapper')
 
-const { Client } = require('discord-rpc-patch')
+const {Client} = require('discord-rpc-patch')
 
 let client
 let activity
 
-exports.initRPC = function(genSettings, servSettings, initialDetails = 'Waiting for Client..'){
-    client = new Client({ transport: 'ipc' })
+exports.initRPC = function (genSettings, servSettings, initialDetails = 'Waiting for Client..') {
+    client = new Client({transport: 'ipc'})
 
     activity = {
         details: initialDetails,
@@ -26,9 +26,9 @@ exports.initRPC = function(genSettings, servSettings, initialDetails = 'Waiting 
         logger.info('Discord RPC Connected')
         client.setActivity(activity)
     })
-    
+
     client.login({clientId: genSettings.clientId}).catch(error => {
-        if(error.message.includes('ENOENT')) {
+        if (error.message.includes('ENOENT')) {
             logger.info('Unable to initialize Discord Rich Presence, no client detected.')
         } else {
             logger.info('Unable to initialize Discord Rich Presence: ' + error.message, error)
@@ -36,13 +36,13 @@ exports.initRPC = function(genSettings, servSettings, initialDetails = 'Waiting 
     })
 }
 
-exports.updateDetails = function(details){
+exports.updateDetails = function (details) {
     activity.details = details
     client.setActivity(activity)
 }
 
-exports.shutdownRPC = function(){
-    if(!client) return
+exports.shutdownRPC = function () {
+    if (!client) return
     client.clearActivity()
     client.destroy()
     client = null
