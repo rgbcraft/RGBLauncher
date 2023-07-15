@@ -48,8 +48,7 @@ exports.getAbsoluteMinRAM = function (ram) {
         return ram.minimum / 1024
     } else {
         // Legacy behavior
-        const mem = os.totalmem()
-        return mem >= (6 * 1073741824) ? 3 : 2
+        return 1
     }
 }
 
@@ -60,13 +59,7 @@ exports.getAbsoluteMaxRAM = function (ram) {
 }
 
 function resolveSelectedRAM(ram) {
-    if (ram?.recommended != null) {
-        return `${ram.recommended}M`
-    } else {
-        // Legacy behavior
-        const mem = os.totalmem()
-        return mem >= (8 * 1073741824) ? '4G' : (mem >= (6 * 1073741824) ? '3G' : '2G')
-    }
+    return '1G'
 }
 
 /**
@@ -521,10 +514,14 @@ function defaultJavaConfig8(ram) {
         maxRAM: resolveSelectedRAM(ram),
         executable: null,
         jvmOptions: [
-            '-XX:+UseConcMarkSweepGC',
-            '-XX:+CMSIncrementalMode',
-            '-XX:-UseAdaptiveSizePolicy',
-            '-Xmn128M'
+            '-XX:+UnlockExperimentalVMOptions',
+            '-XX:+UseG1GC',
+            '-XX:G1NewSizePercent=20',
+            '-XX:G1ReservePercent=20',
+            '-XX:MaxGCPauseMillis=50',
+            '-XX:G1HeapRegionSize=32M',
+            '-XX:+UseNUMA',
+            '-XX:+PerfDisableSharedMem',
         ],
     }
 }
