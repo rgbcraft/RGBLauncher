@@ -5,9 +5,9 @@ const path = require('path')
 
 const logger = LoggerUtil.getLogger('ConfigManager')
 
-const sysRoot = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME)
+const sysRoot = process.env.APPDATA || (process.platform === 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME)
 
-const dataPath = path.join(sysRoot, '.helioslauncher')
+const dataPath = path.join(sysRoot, '.rgbcraft')
 
 const launcherDir = require('@electron/remote').app.getPath('userData')
 
@@ -784,9 +784,9 @@ exports.getAllowPrerelease = function(def = false){
 }
 
 /**
- * Change the status of Whether or not the launcher should download prerelease versions.
- * 
- * @param {boolean} launchDetached Whether or not the launcher should download prerelease versions.
+ * Change the status of whether the launcher should download prerelease versions.
+ *
+ * @param {boolean} allowPrerelease Whether or not the launcher should download prerelease versions.
  */
 exports.setAllowPrerelease = function(allowPrerelease){
     config.settings.launcher.allowPrerelease = allowPrerelease
