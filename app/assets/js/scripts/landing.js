@@ -33,6 +33,8 @@ const {
 const DiscordWrapper = require('./assets/js/discordwrapper')
 const ProcessBuilder = require('./assets/js/processbuilder')
 
+const MinecraftServerListPing = require('minecraft-status').MinecraftServerListPing
+
 // Launch Elements
 const launch_content = document.getElementById('launch_content')
 const launch_details = document.getElementById('launch_details')
@@ -151,7 +153,8 @@ function updateSelectedAccount(authUser) {
             username = authUser.displayName
         }
         if (authUser.uuid != null) {
-            document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
+            // https://mc-heads.net/body/${authUser.uuid}/right
+            document.getElementById('avatarContainer').style.backgroundImage = `url('http://skins.rgbcraft.com/api/helm/${authUser.displayName}/1024')`
         }
     }
     user_text.innerHTML = username
@@ -249,11 +252,15 @@ const refreshServerStatus = async (fade = false) => {
     let pVal = 'OFFLINE'
 
     try {
-
-        const servStat = await getServerStatus(47, serv.hostname, serv.port)
-        console.log(servStat)
-        pLabel = 'PLAYERS'
-        pVal = servStat.players.online + '/' + servStat.players.max
+        let resp = await MinecraftServerListPing.ping15(serv.hostname, serv.port)
+        let players_online = resp.players.online
+        let players_max = resp.players.max
+        // const servStat = await getServerStatus(7, serv.hostname, serv.port)
+        // console.log(servStat)
+        if (players_max > 0) {
+            pLabel = 'PLAYERS'
+            pVal = players_online + '/' + players_max
+        }
 
     } catch (err) {
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
@@ -443,11 +450,8 @@ async function downloadJava(effectiveJavaOptions, launchAfter = true) {
 
 // Keep reference to Minecraft Process
 let proc
-// Is DiscordRPC enabled
-let hasRPC = false
 // Joined server regex
 // Change this if your server uses something different.
-const GAME_JOINED_REGEX = /\[.+\]: Sound engine started/
 const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+)$/
 const MIN_LINGER = 5000
 
@@ -563,15 +567,8 @@ async function dlAsync(login = true) {
         let pb = new ProcessBuilder(serv, versionData, forgeData, authUser, remote.app.getVersion())
         setLaunchDetails('Launching game..')
 
-        // const SERVER_JOINED_REGEX = /\[.+\]: \[CHAT\] [a-zA-Z0-9_]{1,16} joined the game/
-        const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
-
         const onLoadComplete = () => {
             toggleLaunchArea(false)
-            if (hasRPC) {
-                DiscordWrapper.updateDetails('Loading game..')
-                proc.stdout.on('data', gameStateChange)
-            }
             proc.stdout.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
         }
@@ -592,16 +589,6 @@ async function dlAsync(login = true) {
             }
         }
 
-        // Listener for Discord RPC.
-        const gameStateChange = function (data) {
-            data = data.trim()
-            if (SERVER_JOINED_REGEX.test(data)) {
-                DiscordWrapper.updateDetails('Exploring the Realm!')
-            } else if (GAME_JOINED_REGEX.test(data)) {
-                DiscordWrapper.updateDetails('Sailing to Westeros!')
-            }
-        }
-
         const gameErrorListener = function (data) {
             data = data.trim()
             if (data.indexOf('Could not find or load main class net.minecraft.launchwrapper.Launch') > -1) {
@@ -619,19 +606,6 @@ async function dlAsync(login = true) {
             proc.stderr.on('data', gameErrorListener)
 
             setLaunchDetails('Done. Enjoy the server!')
-
-            // Init Discord Hook
-            if (distro.rawDistribution.discord != null && serv.rawServerdiscord != null) {
-                DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
-                hasRPC = true
-                proc.on('close', (code, signal) => {
-                    loggerLaunchSuite.info('Shutting down Discord Rich Presence..')
-                    DiscordWrapper.shutdownRPC()
-                    hasRPC = false
-                    proc = null
-                })
-            }
-
         } catch (err) {
 
             loggerLaunchSuite.error('Error during launch', err)

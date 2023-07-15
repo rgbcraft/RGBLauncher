@@ -1,8 +1,8 @@
-appId: 'helioslauncher'
-productName: 'Helios Launcher'
-artifactName: '${productName}-setup-${version}.${ext}'
+appId: 'rgblauncher'
+productName: 'RGB Launcher'
+artifactName: '${productName}-${version}.${ext}'
 
-copyright: 'Copyright © 2018-2022 Daniel Scalzi'
+copyright: 'Copyright © 2023 Enn3DevPlayer'
 
 asar: true
 compression: 'maximum'
@@ -14,8 +14,8 @@ extraResources:
   - 'libraries'
 
 # Windows Configuration
-win: 
-  target: 
+win:
+  target:
     - target: 'nsis'
       arch: 'x64'
 
@@ -33,16 +33,16 @@ mac:
       arch:
         - 'x64'
         - 'arm64'
-  artifactName: '${productName}-setup-${version}-${arch}.${ext}'
+  artifactName: '${productName}-${version}-${arch}.${ext}'
   category: 'public.app-category.games'
 
 # Linux Configuration
-linux: 
-  target: 'AppImage'
-  maintainer: 'Daniel Scalzi'
-  vendor: 'Daniel Scalzi'
-  synopsis: 'Modded Minecraft Launcher'
-  description: 'Custom launcher which allows users to join modded servers. All mods, configurations, and updates are handled automatically.'
+linux:
+  target: 'tar.xz'
+  maintainer: 'Enn3DevPlayer'
+  vendor: 'Enn3DevPlayer'
+  synopsis: 'RGB Launcher'
+  description: 'RGBCraft Launcher.'
   category: 'Game'
 
 

@@ -33,6 +33,7 @@
     "github-syntax-dark": "^0.5.0",
     "got": "^11.8.5",
     "jquery": "^3.6.4",
+    "minecraft-status": "^1.1.0",
     "rgblauncher-core": "^1.0.1",
     "rgblauncher-distribution-types": "^1.0.0",
     "semver": "^7.4.0"
