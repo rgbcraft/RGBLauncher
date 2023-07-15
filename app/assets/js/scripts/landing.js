@@ -258,7 +258,7 @@ const refreshServerStatus = async (fade = false) => {
         // const servStat = await getServerStatus(7, serv.hostname, serv.port)
         // console.log(servStat)
         if (players_max > 0) {
-            pLabel = 'PLAYERS'
+            pLabel = 'GIOCATORI'
             pVal = players_online + '/' + players_max
         }
 
@@ -716,7 +716,7 @@ let newsLoadingListener = null
  */
 function setNewsLoading(val) {
     if (val) {
-        const nLStr = 'Checking for News'
+        const nLStr = 'Controllando le Notizie'
         let dotStr = '..'
         nELoadSpan.innerHTML = nLStr + dotStr
         newsLoadingListener = setInterval(() => {

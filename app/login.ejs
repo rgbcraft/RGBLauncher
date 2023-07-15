@@ -2,13 +2,13 @@
     <div id="loginCancelContainer" style="display: none;">
         <button id="loginCancelButton">
             <div id="loginCancelIcon">X</div>
-            <span id="loginCancelText">Cancel</span>
+            <span id="loginCancelText">Annulla</span>
         </button>
     </div>
     <div id="loginContent">
         <form id="loginForm">
             <img id="loginImageSeal" src="assets/images/RGB.png"/>
-            <span id="loginSubheader">MINECRAFT LOGIN</span>
+            <span id="loginSubheader">LOGIN MINECRAFT</span>
             <div class="loginFieldContainer">
                 <svg id="profileSVG" class="loginSVG" viewBox="40 37 65.36 61.43">
                     <g>
@@ -16,7 +16,7 @@
                     </g>
                 </svg>
                 <span class="loginErrorSpan" id="loginEmailError">* Invalid Value</span>
-                <input id="loginUsername" class="loginField" type="text" placeholder="EMAIL OR USERNAME"/>
+                <input id="loginUsername" class="loginField" type="text" placeholder="EMAIL O USERNAME"/>
             </div>
             <div class="loginFieldContainer">
                 <svg id="lockSVG" class="loginSVG" viewBox="40 32 60.36 70.43">
@@ -29,11 +29,11 @@
             </div>
             <div id="loginOptions">
                 <span class="loginSpanDim">
-                    <a href="https://minecraft.net/password/forgot/">forgot password?</a>
+                    <a href="https://minecraft.net/password/forgot/">password dimenticata?</a>
                 </span>
                 <label id="checkmarkContainer">
                     <input id="loginRememberOption" type="checkbox" checked>
-                    <span id="loginRememberText" class="loginSpanDim">remember me?</span>
+                    <span id="loginRememberText" class="loginSpanDim">ricordami</span>
                     <span class="loginCheckmark"></span>
                 </label>
             </div>
@@ -42,7 +42,12 @@
                     LOGIN
                     <svg id="loginSVG" viewBox="0 0 24.87 13.97">
                         <defs>
-                            <style>.arrowLine{fill:none;stroke:#FFF;stroke-width:2px;transition: 0.25s ease;}</style>
+                            <style>.arrowLine {
+                                    fill: none;
+                                    stroke: #FFF;
+                                    stroke-width: 2px;
+                                    transition: 0.25s ease;
+                                }</style>
                         </defs>
                         <polyline class="arrowLine" points="0.71 13.26 12.56 1.41 24.16 13.02"/>
                     </svg>
@@ -54,10 +59,11 @@
             </button>
             <div id="loginDisclaimer">
                 <span class="loginSpanDim" id="loginRegisterSpan">
-                    <a href="https://minecraft.net/store/minecraft-java-edition/">Need an Account?</a>
+                    <a href="https://minecraft.net/store/minecraft-java-edition/">Hai bisogno di un account?</a>
                 </span>
-                <p class="loginDisclaimerText">Your password is sent directly to mojang and never stored.</p>
-                <p class="loginDisclaimerText">RGB Launcher is not affiliated with Mojang AB.</p>
+                <p class="loginDisclaimerText">La tua password viene inviata direttamente a Mojang e non viene
+                    salvato.</p>
+                <p class="loginDisclaimerText">RGB Launcher non è affiliato a Mojang AB.</p>
             </div>
         </form>
     </div>
