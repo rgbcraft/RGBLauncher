@@ -55,7 +55,7 @@ exports.getAbsoluteMinRAM = function (ram) {
 exports.getAbsoluteMaxRAM = function (ram) {
     const mem = os.totalmem()
     const gT16 = mem - (16 * 1073741824)
-    return Math.floor((mem - (gT16 > 0 ? (Number.parseInt(gT16 / 8) + (16 * 1073741824) / 4) : mem / 4)) / 1073741824)
+    return Math.floor((mem - (gT16 > 0 ? (gT16 / 8 + (16 * 1073741824) / 4) : mem / 4)) / 1073741824)
 }
 
 function resolveSelectedRAM(ram) {
