@@ -1,6 +1,6 @@
 appId: 'rgblauncher'
 productName: 'RGB Launcher'
-artifactName: '${productName}-${version}.${ext}'
+artifactName: '${productName}.${ext}'
 
 copyright: 'Copyright © 2023 Enn3DevPlayer'
 
@@ -32,13 +32,25 @@ mac:
     - target: 'dmg'
       arch:
         - 'x64'
-        - 'arm64'
-  artifactName: '${productName}-${version}-${arch}.${ext}'
+  #        - 'arm64'
+  artifactName: '${productName}.${ext}'
   category: 'public.app-category.games'
 
 # Linux Configuration
 linux:
-  target: 'tar.xz'
+  target:
+    - target: 'AppImage'
+      arch:
+        - x64
+    - target: 'deb'
+      arch:
+        - x64
+    - target: 'rpm'
+      arch:
+        - x64
+    - target: 'tar.xz'
+      arch:
+        - x64
   maintainer: 'Enn3DevPlayer'
   vendor: 'Enn3DevPlayer'
   synopsis: 'RGB Launcher'
