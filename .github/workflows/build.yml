@@ -25,7 +25,7 @@ jobs:
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
+        run: npm run dist --publish=release
         shell: bash
   #      - name: Upload RGB Launcher
   #        uses: actions/upload-artifact@v3
@@ -58,7 +58,7 @@ jobs:
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
+        run: npm run dist --publish=release
         shell: bash
   #      - name: Upload RGB Launcher
   #        uses: actions/upload-artifact@v3
@@ -91,7 +91,7 @@ jobs:
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run dist
+        run: npm run dist --publish=release
         shell: bash
 #      - name: Upload RGB Launcher AppImage
 #        uses: actions/upload-artifact@v3
