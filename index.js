@@ -180,7 +180,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
     msftLogoutSuccess = false
     msftLogoutSuccessSent = false
     msftLogoutWindow = new BrowserWindow({
-        title: 'Microsoft Logout',
+        title: 'Logout Microsoft',
         backgroundColor: '#222222',
         width: 520,
         height: 600,
