@@ -150,7 +150,9 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         let received_length = 0
         const reader = resp.body.getReader()
         let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.name)
+        let bin = path.join(dir, 'bin')
         let modpack = path.join(dir, 'modpack.zip')
+        let client = path.join(bin, 'minecraft.jar')
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, {recursive: true})
         }
@@ -173,24 +175,45 @@ document.getElementById('launch_button').addEventListener('click', async e => {
             // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
         }
 
+        if (!fs.existsSync(client)) {
+            if (!fs.existsSync(bin)) {
+                fs.mkdirSync(bin, {recursive: true})
+            }
+            resp = await fetch('https://launcher.mojang.com/v1/objects/53ed4b9d5c358ecfff2d8b846b4427b888287028/client.jar')
+            const reader = resp.body.getReader()
+            max = Number(resp.headers.get('content-length'))
+            received_length = 0
+            setLaunchDetails('Scaricamento client')
+            setLaunchPercentage(0)
+            let filestream = fs.createWriteStream(client)
+
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                const {done, value} = await reader.read()
+                if (done) {
+                    break
+                }
+                filestream.write(value)
+                received_length += value.length
+
+                setLaunchPercentage(Math.floor(received_length / max * 100))
+                // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
+            }
+        }
         // document.getElementById('launch_button').innerText = 'ESTRAZIONE..'
         setLaunchPercentage(0)
-        setLaunchDetails('Estrazione')
+        setLaunchDetails('Installazione modpack')
 
-        resp = await fetch('https://launcher.mojang.com/v1/objects/53ed4b9d5c358ecfff2d8b846b4427b888287028/client.jar')
-        let client = resp.body.pipeTo(fs.createWriteStream(path.join(dir, 'bin', 'modpack.jar')))
         const zip = new StreamZip.async({file: modpack})
-        let count = await zip.entriesCount
-        let current = 0
-        zip.on('entry', entry => {
-            current++
-            document.getElementById('launch_button').disabled = true
-            document.getElementById('launch_button').innerText = `Estrazione: ${(current / count * 100).toFixed(2)}%`
-        })
+        // let count = await zip.entriesCount
+        // let current = 0
+        // zip.on('entry', entry => {
+        //     current++
+        //     document.getElementById('launch_button').disabled = true
+        //     document.getElementById('launch_button').innerText = `Estrazione: ${(current / count * 100).toFixed(2)}%`
+        // })
         await zip.extract(null, dir)
         await zip.close()
-        setLaunchPercentage(75)
-        await client
         setLaunchPercentage(100)
 
         fs.rmSync(modpack)
