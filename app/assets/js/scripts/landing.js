@@ -34,6 +34,9 @@ const ProcessBuilder = require('./assets/js/processbuilder')
 
 const MinecraftServerListPing = require('minecraft-status').MinecraftServerListPing
 
+const StreamZip = require('node-stream-zip')
+const fs = require('fs')
+
 // Launch Elements
 const launch_content = document.getElementById('launch_content')
 const launch_details = document.getElementById('launch_details')
@@ -101,8 +104,107 @@ function setLaunchEnabled(val) {
     document.getElementById('launch_button').disabled = !val
 }
 
+let updating = false
+
+async function isNeedsUpdate() {
+    let server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
+
+    let version
+    if (server.rawServer.technic) {
+        let resp = await fetch(server.rawServer.technic)
+        let data = JSON.parse(await resp.text())
+        version = data.version
+    }
+
+    let cfg = ConfigManager.getModConfiguration(ConfigManager.getSelectedServer())
+
+    let needs = !(version === cfg.version)
+    ConfigManager.setNeedsUpdate(needs)
+
+    return needs && !updating
+}
+
+function setUpdating(bool) {
+    updating = bool
+}
+
+function setTechnicVersion(version) {
+    let cfg = ConfigManager.getModConfiguration(ConfigManager.getSelectedServer())
+    cfg.version = version
+    ConfigManager.save()
+}
+
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
+    if (await isNeedsUpdate()) {
+        loggerLanding.info('Updating..')
+        setUpdating(true)
+
+        let server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
+        let resp = await fetch(server.technic)
+        let data = JSON.parse(await resp.text())
+        let download_url = data.url
+        let version = data.version
+        resp = await fetch(download_url)
+        let max = Number(resp.headers.get('content-length'))
+        let received_length = 0
+        const reader = resp.body.getReader()
+        let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.name)
+        let modpack = path.join(dir, 'modpack.zip')
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, {recursive: true})
+        }
+        let filestream = fs.createWriteStream(modpack)
+
+        document.getElementById('launch_button').disabled = true
+        toggleLaunchArea(true)
+        setLaunchDetails('Scaricamento modpack')
+        setLaunchPercentage(0)
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const {done, value} = await reader.read()
+            if (done) {
+                break
+            }
+            filestream.write(value)
+            received_length += value.length
+
+            setLaunchPercentage(Math.floor(received_length / max * 100))
+            // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
+        }
+
+        // document.getElementById('launch_button').innerText = 'ESTRAZIONE..'
+        setLaunchPercentage(0)
+        setLaunchDetails('Estrazione')
+
+        resp = await fetch('https://launcher.mojang.com/v1/objects/53ed4b9d5c358ecfff2d8b846b4427b888287028/client.jar')
+        let client = resp.body.pipeTo(fs.createWriteStream(path.join(dir, 'bin', 'modpack.jar')))
+        const zip = new StreamZip.async({file: modpack})
+        let count = await zip.entriesCount
+        let current = 0
+        zip.on('entry', entry => {
+            current++
+            document.getElementById('launch_button').disabled = true
+            document.getElementById('launch_button').innerText = `Estrazione: ${(current / count * 100).toFixed(2)}%`
+        })
+        await zip.extract(null, dir)
+        await zip.close()
+        setLaunchPercentage(75)
+        await client
+        setLaunchPercentage(100)
+
+        fs.rmSync(modpack)
+        ConfigManager.setNeedsUpdate(false)
+        setUpdating(false)
+        setTechnicVersion(version)
+
+        toggleLaunchArea(false)
+        document.getElementById('launch_button').disabled = false
+        document.getElementById('launch_button').innerText = 'GIOCA'
+
+        return
+    }
+
     loggerLanding.info('Launching game..')
     try {
         const server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
@@ -110,7 +212,6 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         if (jExe == null) {
             await asyncSystemScan(server.effectiveJavaOptions)
         } else {
-
             setLaunchDetails('Attendere')
             toggleLaunchArea(true)
             setLaunchPercentage(0, 100)
@@ -146,7 +247,7 @@ document.getElementById('avatarOverlay').onclick = async e => {
 
 // Bind selected account
 function updateSelectedAccount(authUser) {
-    let username = 'No Account Selected'
+    let username = 'Nessun account selezionato'
     if (authUser != null) {
         if (authUser.displayName != null) {
             username = authUser.displayName
@@ -168,7 +269,7 @@ function updateSelectedServer(serv) {
     }
     ConfigManager.setSelectedServer(serv != null ? serv.rawServer.id : null)
     ConfigManager.save()
-    server_selection_button.innerHTML = '\u2022 ' + (serv != null ? serv.rawServer.name : 'No Server Selected')
+    server_selection_button.innerHTML = '\u2022 ' + (serv != null ? serv.rawServer.name : 'Nessun server selezionato')
     if (getCurrentView() === VIEWS.settings) {
         animateSettingsTabRefresh()
     }
@@ -176,7 +277,7 @@ function updateSelectedServer(serv) {
 }
 
 // Real text is set in uibinder.js on distributionIndexDone.
-server_selection_button.innerHTML = '\u2022 Loading..'
+server_selection_button.innerHTML = '\u2022 Caricando..'
 server_selection_button.onclick = async e => {
     e.target.blur()
     await toggleServerSelection(true)
@@ -199,8 +300,8 @@ const refreshMojangStatuses = async function () {
         statuses = MojangRestAPI.getDefaultStatuses()
     }
 
-    greenCount = 0
-    greyCount = 0
+    let greenCount = 0
+    let greyCount = 0
 
     for (let i = 0; i < statuses.length; i++) {
         const service = statuses[i]
@@ -244,6 +345,10 @@ const refreshMojangStatuses = async function () {
 }
 
 const refreshServerStatus = async (fade = false) => {
+    if (await isNeedsUpdate()) {
+        document.getElementById('launch_button').innerText = 'AGGIORNA'
+    }
+
     loggerLanding.info('Refreshing Server Status')
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
 
@@ -254,8 +359,6 @@ const refreshServerStatus = async (fade = false) => {
         let resp = await MinecraftServerListPing.ping15(serv.hostname, serv.port)
         let players_online = resp.players.online
         let players_max = resp.players.max
-        // const servStat = await getServerStatus(7, serv.hostname, serv.port)
-        // console.log(servStat)
         if (players_max > 0) {
             pLabel = 'GIOCATORI'
             pVal = players_online + '/' + players_max
@@ -487,34 +590,34 @@ async function dlAsync(login = true) {
     toggleLaunchArea(true)
     setLaunchPercentage(0, 100)
 
-    const fullRepairModule = new FullRepair(
-        ConfigManager.getCommonDirectory(),
-        ConfigManager.getInstanceDirectory(),
-        ConfigManager.getLauncherDirectory(),
-        ConfigManager.getSelectedServer(),
-        DistroAPI.isDevMode()
-    )
-
-    fullRepairModule.spawnReceiver()
-
-    fullRepairModule.childProcess.on('error', (err) => {
-        loggerLaunchSuite.error('Error during launch', err)
-        showLaunchFailure('Error During Launch', err.message || 'See console (CTRL + Shift + i) for more details.')
-    })
-    fullRepairModule.childProcess.on('close', (code, _signal) => {
-        if (code !== 0) {
-            loggerLaunchSuite.error(`Full Repair Module exited with code ${code}, assuming error.`)
-            showLaunchFailure('Error During Launch', 'See console (CTRL + Shift + i) for more details.')
-        }
-    })
+    // const fullRepairModule = new FullRepair(
+    //     ConfigManager.getCommonDirectory(),
+    //     ConfigManager.getInstanceDirectory(),
+    //     ConfigManager.getLauncherDirectory(),
+    //     ConfigManager.getSelectedServer(),
+    //     DistroAPI.isDevMode()
+    // )
+    //
+    // fullRepairModule.spawnReceiver()
+    //
+    // fullRepairModule.childProcess.on('error', (err) => {
+    //     loggerLaunchSuite.error('Error during launch', err)
+    //     showLaunchFailure('Error During Launch', err.message || 'See console (CTRL + Shift + i) for more details.')
+    // })
+    // fullRepairModule.childProcess.on('close', (code, _signal) => {
+    //     if (code !== 0) {
+    //         loggerLaunchSuite.error(`Full Repair Module exited with code ${code}, assuming error.`)
+    //         showLaunchFailure('Error During Launch', 'See console (CTRL + Shift + i) for more details.')
+    //     }
+    // })
 
     loggerLaunchSuite.info('Validating files.')
     setLaunchDetails('Validando l\'integrità dei file..')
     let invalidFileCount = 0
     try {
-        invalidFileCount = await fullRepairModule.verifyFiles(percent => {
-            setLaunchPercentage(percent)
-        })
+        // invalidFileCount = await fullRepairModule.verifyFiles(percent => {
+        //     setLaunchPercentage(percent)
+        // })
         setLaunchPercentage(100)
     } catch (err) {
         loggerLaunchSuite.error('Error during file validation.')
@@ -528,9 +631,9 @@ async function dlAsync(login = true) {
         setLaunchDetails('Scaricando file..')
         setLaunchPercentage(0)
         try {
-            await fullRepairModule.download(percent => {
-                setDownloadPercentage(percent)
-            })
+            // await fullRepairModule.download(percent => {
+            //     setDownloadPercentage(percent)
+            // })
             setDownloadPercentage(100)
         } catch (err) {
             loggerLaunchSuite.error('Error during file download.')
@@ -544,26 +647,26 @@ async function dlAsync(login = true) {
     // Remove download bar.
     remote.getCurrentWindow().setProgressBar(-1)
 
-    fullRepairModule.destroyReceiver()
+    // fullRepairModule.destroyReceiver()
 
     setLaunchDetails('Preparando per il lancio..')
 
-    const mojangIndexProcessor = new MojangIndexProcessor(
-        ConfigManager.getCommonDirectory(),
-        serv.rawServer.minecraftVersion)
-    const distributionIndexProcessor = new DistributionIndexProcessor(
-        ConfigManager.getCommonDirectory(),
-        distro,
-        serv.rawServer.id
-    )
+    // const mojangIndexProcessor = new MojangIndexProcessor(
+    //     ConfigManager.getCommonDirectory(),
+    //     serv.rawServer.minecraftVersion)
+    // const distributionIndexProcessor = new DistributionIndexProcessor(
+    //     ConfigManager.getCommonDirectory(),
+    //     distro,
+    //     serv.rawServer.id
+    // )
 
-    const forgeData = await distributionIndexProcessor.loadForgeVersionJson(serv)
-    const versionData = await mojangIndexProcessor.getVersionJson()
+    // const forgeData = await distributionIndexProcessor.loadForgeVersionJson(serv)
+    // const versionData = await mojangIndexProcessor.getVersionJson()
 
     if (login) {
         const authUser = ConfigManager.getSelectedAccount()
         loggerLaunchSuite.info(`Sending selected account (${authUser.displayName}) to ProcessBuilder.`)
-        let pb = new ProcessBuilder(serv, versionData, forgeData, authUser, remote.app.getVersion())
+        let pb = new ProcessBuilder(serv, /*versionData*/ null, null, authUser, remote.app.getVersion())
         setLaunchDetails('Eseguendo RGBCraft..')
 
         const onLoadComplete = () => {

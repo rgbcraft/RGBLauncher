@@ -190,10 +190,19 @@ function syncModConfigurations(data) {
                 }
             }
 
-            syncedCfgs.push({
-                id,
-                mods
-            })
+            if (cfg.version) {
+                let version = cfg.version
+                syncedCfgs.push({
+                    id,
+                    mods,
+                    version
+                })
+            } else {
+                syncedCfgs.push({
+                    id,
+                    mods
+                })
+            }
 
         } else {
 

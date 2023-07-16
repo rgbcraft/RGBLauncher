@@ -97,6 +97,16 @@ const DEFAULT_CONFIG = {
 
 let config = null
 
+let needsUpdate = false
+
+exports.needsUpdate = function () {
+    return needsUpdate
+}
+
+exports.setNeedsUpdate = function (bool) {
+    needsUpdate = bool
+}
+
 // Persistance Utility Functions
 
 /**
@@ -180,7 +190,7 @@ function validateKeySet(srcObj, destObj) {
 
 /**
  * Check to see if this is the first time the user has launched the
- * application. This is determined by the existance of the data path.
+ * application. This is determined by the existence of the data path.
  *
  * @returns {boolean} True if this is the first launch, otherwise false.
  */
@@ -202,7 +212,7 @@ exports.getTempNativeFolder = function () {
 
 /**
  * Retrieve the news cache to determine
- * whether or not there is newer news.
+ * whether there is newer news.
  *
  * @returns {Object} The news cache object.
  */
@@ -220,7 +230,7 @@ exports.setNewsCache = function (newsCache) {
 }
 
 /**
- * Set whether or not the news has been dismissed (checked)
+ * Set whether the news has been dismissed (checked)
  *
  * @param {boolean} dismissed Whether or not the news has been dismissed (checked).
  */

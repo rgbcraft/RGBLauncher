@@ -35,28 +35,44 @@ class ProcessBuilder {
      * Convienence method to run the functions typically used to build a process.
      */
     build() {
-        fs.ensureDirSync(this.gameDir)
-        const tempNativePath = path.join(os.tmpdir(), ConfigManager.getTempNativeFolder(), crypto.pseudoRandomBytes(16).toString('hex'))
-        process.throwDeprecation = true
-        this.setupLiteLoader()
-        logger.info('Using liteloader:', this.usingLiteLoader)
-        const modObj = this.resolveModConfiguration(ConfigManager.getModConfiguration(this.server.rawServer.id).mods, this.server.modules)
+        let args = []
+        args.push('-cp')
+        let cpArgs = []
+        let bin = 'bin'
+        cpArgs.push(path.join(bin, 'jopt-simple-4.5.jar'), path.join(bin, 'jinput.jar'), path.join(bin, 'jutils-1.0.0.jar'), path.join(bin, 'lwjgl.jar'), path.join(bin, 'lwjgl_util.jar'), path.join(bin, 'legacywrapper-1.2.1.jar'), path.join(bin, 'modpack.jar'), path.join(bin, 'minecraft.jar'))
+        this._processClassPathList(cpArgs)
+        args.push(cpArgs.join(ProcessBuilder.getClasspathSeparator()))
+        args.push('-Xmx' + ConfigManager.getMaxRAM(this.server.rawServer.id))
+        args.push('-Xms' + ConfigManager.getMinRAM(this.server.rawServer.id))
+        args = args.concat(ConfigManager.getJVMOptions(this.server.rawServer.id))
+        args.push('-Djava.library.path=' + path.join(bin, 'natives'))
+        args.push('net.technicpack.legacywrapper.Launch')
+        args = args.concat(this._resolveForgeArgs())
 
-        // Mod list below 1.13
-        if (!mcVersionAtLeast('1.13', this.server.rawServer.minecraftVersion)) {
-            this.constructJSONModList('forge', modObj.fMods, true)
-            if (this.usingLiteLoader) {
-                this.constructJSONModList('liteloader', modObj.lMods, true)
-            }
-        }
-
-        const uberModArr = modObj.fMods.concat(modObj.lMods)
-        let args = this.constructJVMArguments(uberModArr, tempNativePath)
-
-        if (mcVersionAtLeast('1.13', this.server.rawServer.minecraftVersion)) {
-            //args = args.concat(this.constructModArguments(modObj.fMods))
-            args = args.concat(this.constructModList(modObj.fMods))
-        }
+        // build() {
+        //     fs.ensureDirSync(this.gameDir)
+        //     const tempNativePath = path.join(os.tmpdir(), ConfigManager.getTempNativeFolder(), crypto.pseudoRandomBytes(16).toString('hex'))
+        //     process.throwDeprecation = true
+        //     // this.setupLiteLoader()
+        //     logger.info('Using liteloader:', this.usingLiteLoader)
+        //     const modObj = this.resolveModConfiguration(ConfigManager.getModConfiguration(this.server.rawServer.id).mods, this.server.modules)
+        //
+        //     // Mod list below 1.13
+        //     // if (!mcVersionAtLeast('1.13', this.server.rawServer.minecraftVersion)) {
+        //     //     this.constructJSONModList('forge', modObj.fMods, true)
+        //     //     if (this.usingLiteLoader) {
+        //     //         this.constructJSONModList('liteloader', modObj.lMods, true)
+        //     //     }
+        //     // }
+        //
+        //     const uberModArr = modObj.fMods.concat(modObj.lMods)
+        //     let args = this.constructJVMArguments(uberModArr, tempNativePath)
+        //
+        //     if (mcVersionAtLeast('1.13', this.server.rawServer.minecraftVersion)) {
+        //         //args = args.concat(this.constructModArguments(modObj.fMods))
+        //         args = args.concat(this.constructModList(modObj.fMods))
+        //     }
+        //
 
         logger.info('Launch Arguments:', args)
 
@@ -81,13 +97,6 @@ class ProcessBuilder {
         })
         child.on('close', (code, signal) => {
             logger.info('Exited with code', code)
-            fs.remove(tempNativePath, (err) => {
-                if (err) {
-                    logger.warn('Error while deleting temp dir', err)
-                } else {
-                    logger.info('Temp dir deleted successfully.')
-                }
-            })
         })
 
         return child
@@ -231,7 +240,7 @@ class ProcessBuilder {
      *
      * @param {'forge' | 'liteloader'} type The mod list type to construct.
      * @param {Array.<Object>} mods An array of mods to add to the mod list.
-     * @param {boolean} save Optional. Whether or not we should save the mod list file.
+     * @param {boolean} save Optional. Whether we should save the mod list file.
      */
     constructJSONModList(type, mods, save = false) {
         const modList = {
@@ -551,8 +560,11 @@ class ProcessBuilder {
      * @returns {Array.<string>} An array containing the arguments required by forge.
      */
     _resolveForgeArgs() {
-        const mcArgs = this.forgeData.minecraftArguments.split(' ')
+        // const mcArgs = this.forgeData.minecraftArguments.split(' ')
         const argDiscovery = /\${*(.*)}/
+
+        let mcArgs = []
+        mcArgs.push('${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}', '--icon', 'icon.png', '--title', 'RGBCraft')
 
         // Replace the declared variables with their proper values.
         for (let i = 0; i < mcArgs.length; ++i) {
@@ -605,31 +617,32 @@ class ProcessBuilder {
         if (ConfigManager.getFullscreen()) {
             mcArgs.push('--fullscreen')
             mcArgs.push(true)
-        } else {
-            mcArgs.push('--width')
-            mcArgs.push(ConfigManager.getGameWidth())
-            mcArgs.push('--height')
-            mcArgs.push(ConfigManager.getGameHeight())
         }
+        // else {
+        //     mcArgs.push('--width')
+        //     mcArgs.push(ConfigManager.getGameWidth())
+        //     mcArgs.push('--height')
+        //     mcArgs.push(ConfigManager.getGameHeight())
+        // }
 
-        // Mod List File Argument
-        mcArgs.push('--modListFile')
-        if (this._lteMinorVersion(9)) {
-            mcArgs.push(path.basename(this.fmlDir))
-        } else {
-            mcArgs.push('absolute:' + this.fmlDir)
-        }
+        // // Mod List File Argument
+        // mcArgs.push('--modListFile')
+        // if (this._lteMinorVersion(9)) {
+        //     mcArgs.push(path.basename(this.fmlDir))
+        // } else {
+        //     mcArgs.push('absolute:' + this.fmlDir)
+        // }
 
 
-        // LiteLoader
-        if (this.usingLiteLoader) {
-            mcArgs.push('--modRepo')
-            mcArgs.push(this.llDir)
-
-            // Set first arg to liteloader tweak class
-            mcArgs.unshift('com.mumfrey.liteloader.launch.LiteLoaderTweaker')
-            mcArgs.unshift('--tweakClass')
-        }
+        // // LiteLoader
+        // if (this.usingLiteLoader) {
+        //     mcArgs.push('--modRepo')
+        //     mcArgs.push(this.llDir)
+        //
+        //     // Set first arg to liteloader tweak class
+        //     mcArgs.unshift('com.mumfrey.liteloader.launch.LiteLoaderTweaker')
+        //     mcArgs.unshift('--tweakClass')
+        // }
 
         return mcArgs
     }
