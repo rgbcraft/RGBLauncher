@@ -30,7 +30,6 @@ const {
 } = require('rgblauncher-core/java')
 
 // Internal Requirements
-const DiscordWrapper = require('./assets/js/discordwrapper')
 const ProcessBuilder = require('./assets/js/processbuilder')
 
 const MinecraftServerListPing = require('minecraft-status').MinecraftServerListPing
@@ -112,7 +111,7 @@ document.getElementById('launch_button').addEventListener('click', async e => {
             await asyncSystemScan(server.effectiveJavaOptions)
         } else {
 
-            setLaunchDetails(Lang.queryJS('landing.launch.pleaseWait'))
+            setLaunchDetails('Attendere')
             toggleLaunchArea(true)
             setLaunchPercentage(0, 100)
 
@@ -313,7 +312,7 @@ function showLaunchFailure(title, desc) {
  */
 async function asyncSystemScan(effectiveJavaOptions, launchAfter = true) {
 
-    setLaunchDetails('Checking system info..')
+    setLaunchDetails('Controllando le informazioni di sistema..')
     toggleLaunchArea(true)
     setLaunchPercentage(0, 100)
 
@@ -326,30 +325,30 @@ async function asyncSystemScan(effectiveJavaOptions, launchAfter = true) {
         // If the result is null, no valid Java installation was found.
         // Show this information to the user.
         setOverlayContent(
-            'No Compatible<br>Java Installation Found',
-            `In order to join WesterosCraft, you need a 64-bit installation of Java ${effectiveJavaOptions.suggestedMajor}. Would you like us to install a copy?`,
-            'Install Java',
-            'Install Manually'
+            'Nessuna installazione<br>Java Compatibile trovata',
+            `Per entrare su RGBCraft, devi avere un'installazione a 64-bit di Java ${effectiveJavaOptions.suggestedMajor}. Vuoi che lo scarichi in automatico?`,
+            'Installa Java',
+            'Installa Manualmente'
         )
         setOverlayHandler(() => {
-            setLaunchDetails('Preparing Java Download..')
+            setLaunchDetails('Preparazione Scaricamento Java..')
             toggleOverlay(false)
 
             try {
                 downloadJava(effectiveJavaOptions, launchAfter)
             } catch (err) {
-                loggerLanding.error('Unhandled error in Java Download', err)
-                showLaunchFailure('Error During Java Download', 'See console (CTRL + Shift + i) for more details.')
+                loggerLanding.error('Errore non gestito nello scaricamento di Java', err)
+                showLaunchFailure('Errore durante lo scaricamento di Java', 'Guarda la console (CTRL + Shift + i) per maggiori informazioni.')
             }
         })
         setDismissHandler(() => {
             $('#overlayContent').fadeOut(250, () => {
                 //$('#overlayDismiss').toggle(false)
                 setOverlayContent(
-                    'Java is Required<br>to Launch',
-                    `A valid x64 installation of Java ${effectiveJavaOptions.suggestedMajor} is required to launch.<br><br>Please refer to our <a href="https://github.com/dscalzi/HeliosLauncher/wiki/Java-Management#manually-installing-a-valid-version-of-java">Java Management Guide</a> for instructions on how to manually install Java.`,
-                    'I Understand',
-                    'Go Back'
+                    'È necessario Java<br>per eseguirlo',
+                    `È richiesta un'installazione a 64-bit valida di Java ${effectiveJavaOptions.suggestedMajor}.<br><br>Riferisciti al nostro <a href="https://www.rgbcraft.com/info/java">Manuale di Gestione Java</a> per le istruzioni su come installare Java manualmente.`,
+                    'Ho Capito',
+                    'Torna Indietro'
                 )
                 setOverlayHandler(() => {
                     toggleLaunchArea(false)
@@ -394,7 +393,7 @@ async function downloadJava(effectiveJavaOptions, launchAfter = true) {
         effectiveJavaOptions.distribution)
 
     if (asset == null) {
-        throw new Error('Failed to find OpenJDK distribution.')
+        throw new Error('Impossibile trovare la distribuzione OpenJDK.')
     }
 
     let received = 0
@@ -405,7 +404,7 @@ async function downloadJava(effectiveJavaOptions, launchAfter = true) {
     setDownloadPercentage(100)
 
     if (received != asset.size) {
-        loggerLanding.warn(`Java Download: Expected ${asset.size} bytes but received ${received}`)
+        loggerLanding.warn(`Scaricamento Java: Previsti ${asset.size} byte ma ricevuti ${received}`)
         if (!await validateLocalFile(asset.path, asset.algo, asset.hash)) {
             log.error(`Hashes do not match, ${asset.id} may be corrupted.`)
             // Don't know how this could happen, but report it.
@@ -418,7 +417,7 @@ async function downloadJava(effectiveJavaOptions, launchAfter = true) {
     remote.getCurrentWindow().setProgressBar(2)
 
     // Wait for extration to complete.
-    const eLStr = 'Extracting Java'
+    const eLStr = 'Estraendo Java'
     let dotStr = ''
     setLaunchDetails(eLStr)
     const extractListener = setInterval(() => {
@@ -440,7 +439,7 @@ async function downloadJava(effectiveJavaOptions, launchAfter = true) {
     ConfigManager.save()
 
     clearInterval(extractListener)
-    setLaunchDetails('Java Installed!')
+    setLaunchDetails('Java Installato!')
 
     // TODO Callback hell
     // Refactor the launch functions
@@ -462,7 +461,7 @@ async function dlAsync(login = true) {
 
     const loggerLaunchSuite = LoggerUtil.getLogger('LaunchSuite')
 
-    setLaunchDetails('Loading server information..')
+    setLaunchDetails('Caricando le informazioni del server..')
 
     let distro
 
@@ -471,7 +470,7 @@ async function dlAsync(login = true) {
         onDistroRefresh(distro)
     } catch (err) {
         loggerLaunchSuite.error('Unable to refresh distribution index.', err)
-        showLaunchFailure('Fatal Error', 'Could not load a copy of the distribution index. See the console (CTRL + Shift + i) for more details.')
+        showLaunchFailure('Errore Fatale', 'Could not load a copy of the distribution index. See the console (CTRL + Shift + i) for more details.')
         return
     }
 
@@ -484,7 +483,7 @@ async function dlAsync(login = true) {
         }
     }
 
-    setLaunchDetails('Please wait..')
+    setLaunchDetails('Attendere..')
     toggleLaunchArea(true)
     setLaunchPercentage(0, 100)
 
@@ -510,7 +509,7 @@ async function dlAsync(login = true) {
     })
 
     loggerLaunchSuite.info('Validating files.')
-    setLaunchDetails('Validating file integrity..')
+    setLaunchDetails('Validando l\'integrità dei file..')
     let invalidFileCount = 0
     try {
         invalidFileCount = await fullRepairModule.verifyFiles(percent => {
@@ -526,7 +525,7 @@ async function dlAsync(login = true) {
 
     if (invalidFileCount > 0) {
         loggerLaunchSuite.info('Downloading files.')
-        setLaunchDetails('Downloading files..')
+        setLaunchDetails('Scaricando file..')
         setLaunchPercentage(0)
         try {
             await fullRepairModule.download(percent => {
@@ -547,7 +546,7 @@ async function dlAsync(login = true) {
 
     fullRepairModule.destroyReceiver()
 
-    setLaunchDetails('Preparing to launch..')
+    setLaunchDetails('Preparando per il lancio..')
 
     const mojangIndexProcessor = new MojangIndexProcessor(
         ConfigManager.getCommonDirectory(),
@@ -565,7 +564,7 @@ async function dlAsync(login = true) {
         const authUser = ConfigManager.getSelectedAccount()
         loggerLaunchSuite.info(`Sending selected account (${authUser.displayName}) to ProcessBuilder.`)
         let pb = new ProcessBuilder(serv, versionData, forgeData, authUser, remote.app.getVersion())
-        setLaunchDetails('Launching game..')
+        setLaunchDetails('Eseguendo RGBCraft..')
 
         const onLoadComplete = () => {
             toggleLaunchArea(false)
@@ -605,7 +604,7 @@ async function dlAsync(login = true) {
             proc.stdout.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
 
-            setLaunchDetails('Done. Enjoy the server!')
+            setLaunchDetails('Fatto. Divertiti sul server!')
         } catch (err) {
 
             loggerLaunchSuite.error('Error during launch', err)
@@ -918,13 +917,13 @@ document.addEventListener('keydown', (e) => {
 /**
  * Display a news article on the UI.
  *
- * @param {Object} articleObject The article meta object.
+ * @param {Object} articleObject The article meta-object.
  * @param {number} index The article index.
  */
 function displayArticle(articleObject, index) {
     newsArticleTitle.innerHTML = articleObject.title
     newsArticleTitle.href = articleObject.link
-    newsArticleAuthor.innerHTML = 'by ' + articleObject.author
+    newsArticleAuthor.innerHTML = 'da ' + articleObject.author
     newsArticleDate.innerHTML = articleObject.date
     newsArticleComments.innerHTML = articleObject.comments
     newsArticleComments.href = articleObject.commentsLink
@@ -935,7 +934,7 @@ function displayArticle(articleObject, index) {
             text.style.display = text.style.display === 'block' ? 'none' : 'block'
         }
     })
-    newsNavigationStatus.innerHTML = index + ' of ' + newsArr.length
+    newsNavigationStatus.innerHTML = index + ' su ' + newsArr.length
     newsContent.setAttribute('article', index - 1)
 }
 
@@ -947,7 +946,7 @@ async function loadNews() {
 
     const distroData = await DistroAPI.getDistribution()
     if (!distroData.rawDistribution.rss) {
-        loggerLanding.debug('No RSS feed provided.')
+        loggerLanding.debug('Nessun feed RSS.')
         return null
     }
 
@@ -966,7 +965,7 @@ async function loadNews() {
                     const el = $(items[i])
 
                     // Resolve date.
-                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('en-US', {
+                    const date = new Date(el.find('pubDate').text()).toLocaleDateString('it-IT', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -976,7 +975,7 @@ async function loadNews() {
 
                     // Resolve comments.
                     let comments = el.find('slash\\:comments').text() || '0'
-                    comments = comments + ' Comment' + (comments === '1' ? '' : 's')
+                    comments = comments + ' ' + (comments === '1' ? 'Commento' : 'Commenti')
 
                     // Fix relative links in content.
                     let content = el.find('content\\:encoded').text()
