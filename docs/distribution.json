@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "discord": {
     "clientId": "385581240906022916",
-    "smallImageText": "RGBCraft",
+    "smallImageText": "RGBcraft",
     "smallImageKey": "rgb"
   },
   "java": {
@@ -11,16 +11,16 @@
   "rss": "",
   "servers": [
     {
-      "id": "RGBCraft",
-      "name": "RGBCraft",
-      "description": "Server principale di RGBCraft",
+      "id": "RGBcraft",
+      "name": "RGBcraft",
+      "description": "Server principale di RGBcraft",
       "icon": "https://cdn.technicpack.net/platform2/pack-icons/1881606.png?1684156381",
       "version": "16.1",
       "address": "kamino.a-centauri.com",
       "minecraftVersion": "1.4.7",
       "discord": {
-        "shortId": "RGBCraft",
-        "largeImageText": "RGBCraft",
+        "shortId": "RGBcraft",
+        "largeImageText": "RGBcraft",
         "largeImageKey": "rgb"
       },
       "mainServer": true,

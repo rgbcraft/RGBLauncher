@@ -564,7 +564,7 @@ class ProcessBuilder {
         const argDiscovery = /\${*(.*)}/
 
         let mcArgs = []
-        mcArgs.push('${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}', '--icon', 'icon.png', '--title', 'RGBCraft')
+        mcArgs.push('${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}', '--icon', 'icon.png', '--title', 'RGBcraft')
 
         // Replace the declared variables with their proper values.
         for (let i = 0; i < mcArgs.length; ++i) {

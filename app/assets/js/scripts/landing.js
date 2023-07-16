@@ -452,7 +452,7 @@ async function asyncSystemScan(effectiveJavaOptions, launchAfter = true) {
         // Show this information to the user.
         setOverlayContent(
             'Nessuna installazione<br>Java Compatibile trovata',
-            `Per entrare su RGBCraft, devi avere un'installazione a 64-bit di Java ${effectiveJavaOptions.suggestedMajor}. Vuoi che lo scarichi in automatico?`,
+            `Per entrare su RGBcraft, devi avere un'installazione a 64-bit di Java ${effectiveJavaOptions.suggestedMajor}. Vuoi che lo scarichi in automatico?`,
             'Installa Java',
             'Installa Manualmente'
         )
@@ -690,7 +690,7 @@ async function dlAsync(login = true) {
         const authUser = ConfigManager.getSelectedAccount()
         loggerLaunchSuite.info(`Sending selected account (${authUser.displayName}) to ProcessBuilder.`)
         let pb = new ProcessBuilder(serv, /*versionData*/ null, null, authUser, remote.app.getVersion())
-        setLaunchDetails('Eseguendo RGBCraft..')
+        setLaunchDetails('Eseguendo RGBcraft..')
 
         const onLoadComplete = () => {
             toggleLaunchArea(false)
