@@ -27,18 +27,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
         shell: bash
-      - name: Upload RGB Launcher
-        uses: actions/upload-artifact@v3
-        with:
-          name: RGB Launcher.exe
-          path: dist\RGB Launcher.exe
-      - name: Publish in release
-        uses: softprops/action-gh-release@v1
-        if: github.ref_type == 'tag'
-        with:
-          files: |
-            dist\RGB Launcher.exe
-          token: ${{ secrets.GITHUB_TOKEN }}
+  #      - name: Upload RGB Launcher
+  #        uses: actions/upload-artifact@v3
+  #        with:
+  #          name: RGB Launcher.exe
+  #          path: dist\RGB Launcher.exe
+  #      - name: Publish in release
+  #        uses: softprops/action-gh-release@v1
+  #        if: github.ref_type == 'tag'
+  #        with:
+  #          files: |
+  #            dist\RGB Launcher.exe
+  #          token: ${{ secrets.GITHUB_TOKEN }}
   build-macos:
     runs-on: macos-latest
     steps:
@@ -60,18 +60,18 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
         shell: bash
-      - name: Upload RGB Launcher
-        uses: actions/upload-artifact@v3
-        with:
-          name: RGB Launcher.dmg
-          path: dist/RGB Launcher.dmg
-      - name: Publish in release
-        uses: softprops/action-gh-release@v1
-        if: github.ref_type == 'tag'
-        with:
-          files: |
-            dist/RGB Launcher.dmg
-          token: ${{ secrets.GITHUB_TOKEN }}
+  #      - name: Upload RGB Launcher
+  #        uses: actions/upload-artifact@v3
+  #        with:
+  #          name: RGB Launcher.dmg
+  #          path: dist/RGB Launcher.dmg
+  #      - name: Publish in release
+  #        uses: softprops/action-gh-release@v1
+  #        if: github.ref_type == 'tag'
+  #        with:
+  #          files: |
+  #            dist/RGB Launcher.dmg
+  #          token: ${{ secrets.GITHUB_TOKEN }}
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -93,33 +93,33 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
         shell: bash
-      - name: Upload RGB Launcher AppImage
-        uses: actions/upload-artifact@v3
-        with:
-          name: RGB Launcher.AppImage
-          path: dist/RGB Launcher.AppImage
-      - name: Upload RGB Launcher deb
-        uses: actions/upload-artifact@v3
-        with:
-          name: RGB Launcher.deb
-          path: dist/RGB Launcher.deb
-      - name: Upload RGB Launcher rpm
-        uses: actions/upload-artifact@v3
-        with:
-          name: RGB Launcher.rpm
-          path: dist/RGB Launcher.rpm
-      - name: Upload RGB Launcher tar.xz
-        uses: actions/upload-artifact@v3
-        with:
-          name: RGB Launcher.tar.xz
-          path: dist/RGB Launcher.tar.xz
-      - name: Publish in release
-        uses: softprops/action-gh-release@v1
-        if: github.ref_type == 'tag'
-        with:
-          files: |
-            dist/RGB Launcher.AppImage
-            dist/RGB Launcher.deb
-            dist/RGB Launcher.rpm
-            dist/RGB Launcher.tar.xz
-          token: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Upload RGB Launcher AppImage
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: RGB Launcher.AppImage
+#          path: dist/RGB Launcher.AppImage
+#      - name: Upload RGB Launcher deb
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: RGB Launcher.deb
+#          path: dist/RGB Launcher.deb
+#      - name: Upload RGB Launcher rpm
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: RGB Launcher.rpm
+#          path: dist/RGB Launcher.rpm
+#      - name: Upload RGB Launcher tar.xz
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: RGB Launcher.tar.xz
+#          path: dist/RGB Launcher.tar.xz
+#      - name: Publish in release
+#        uses: softprops/action-gh-release@v1
+#        if: github.ref_type == 'tag'
+#        with:
+#          files: |
+#            dist/RGB Launcher.AppImage
+#            dist/RGB Launcher.deb
+#            dist/RGB Launcher.rpm
+#            dist/RGB Launcher.tar.xz
+#          token: ${{ secrets.GITHUB_TOKEN }}
