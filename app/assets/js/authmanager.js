@@ -32,9 +32,7 @@ const log = LoggerUtil.getLogger('AuthManager')
 exports.addMojangAccount = async function (username, password) {
     try {
         if (password === 'FITTIZIO') {
-            let resp = await fetch(`https://api.mojang.com/users/profiles/minecraft/${username}`)
-            let uuid = JSON.parse(await resp.text()).id
-            const ret = ConfigManager.addMojangAuthAccount(uuid, '', username, username)
+            const ret = ConfigManager.addMojangAuthAccount('', '', username, username)
             ConfigManager.save()
             return ret
         }
