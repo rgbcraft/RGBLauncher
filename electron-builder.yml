@@ -16,8 +16,12 @@ extraResources:
 # Windows Configuration
 win:
   target:
-    - target: 'nsis'
-      arch: 'x64'
+    - target: 'msi'
+      arch:
+        - x64
+    - target: 'portable'
+      arch:
+        - x64
 
 # Windows Installer Configuration
 nsis:
