@@ -367,6 +367,8 @@ const refreshMojangStatuses = async function () {
     document.getElementById('mojang_status_icon').style.color = MojangRestAPI.statusToHex(status)
 }
 
+let firstTry = false
+
 const refreshServerStatus = async (fade = false) => {
     if (await isNeedsUpdate()) {
         document.getElementById('launch_button').innerText = 'AGGIORNA'
@@ -379,7 +381,12 @@ const refreshServerStatus = async (fade = false) => {
     let pVal = 'OFFLINE'
 
     try {
-        let resp = await MinecraftServerListPing.ping15(serv.hostname, serv.port)
+        let resp
+        if (!firstTry) {
+            resp = await MinecraftServerListPing.ping15(serv.hostname, serv.port)
+        } else {
+            resp = await MinecraftServerListPing.ping15(serv.hostname, 25577)
+        }
         let players_online = resp.players.online
         let players_max = resp.players.max
         if (players_max > 0) {
@@ -388,6 +395,12 @@ const refreshServerStatus = async (fade = false) => {
         }
 
     } catch (err) {
+        if (!firstTry) {
+            firstTry = true
+            refreshServerStatus(fade)
+            return
+        }
+        firstTry = false
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
         loggerLanding.debug(err)
     }
