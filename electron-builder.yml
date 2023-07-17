@@ -1,8 +1,9 @@
 appId: 'rgblauncher'
 productName: 'RGB Launcher'
 artifactName: '${productName}-${version}-${arch}.${ext}'
+author: 'RGBcraft Team'
 
-copyright: 'Copyright © 2023 Enn3DevPlayer'
+copyright: 'Copyright © 2023 RGBcraft'
 
 asar: true
 compression: 'maximum'
@@ -19,12 +20,12 @@ win:
     - target: 'msi'
       arch:
         - x64
+        - arm64
     - target: 'portable'
       arch:
         - x64
-    - target: 'nsis-web'
-      arch:
-        - x64
+        - arm64
+  publisherName: 'RGBcraft Team'
 
 # Windows Installer Configuration
 nsis:
@@ -61,11 +62,16 @@ linux:
       arch:
         - x64
         - arm64
-  maintainer: 'Enn3DevPlayer'
-  vendor: 'Enn3DevPlayer'
+  maintainer: 'RGBcraft Team'
+  vendor: 'RGBcraft Team'
   synopsis: 'RGB Launcher'
   description: 'RGBcraft Launcher.'
   category: 'Game'
+  desktop:
+    name: 'RGBcraft'
+    comment: 'Gioca su RGBcraft'
+    terminal: 'false'
+    keywords: 'rgb;rgbcraft;minecraft;launcher'
 
 directories:
   buildResources: 'build'
