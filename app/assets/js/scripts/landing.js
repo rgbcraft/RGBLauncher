@@ -330,10 +330,10 @@ function updateSelectedServer(serv) {
 
 // Real text is set in uibinder.js on distributionIndexDone.
 server_selection_button.innerHTML = '\u2022 Caricando..'
-// server_selection_button.onclick = async e => {
-//     e.target.blur()
-//     await toggleServerSelection(true)
-// }
+server_selection_button.onclick = async e => {
+    e.target.blur()
+    await toggleServerSelection(true)
+}
 
 // Update Mojang Status Color
 const refreshMojangStatuses = async function () {

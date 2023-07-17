@@ -2,7 +2,7 @@ const {DistributionAPI} = require('rgblauncher-core/common')
 
 const ConfigManager = require('./configmanager')
 
-exports.REMOTE_DISTRO_URL = 'http://t-arm1.narshaddaa.a-centauri.com/distribution.json'
+exports.REMOTE_DISTRO_URL = 'http://cdn.rgbcraft.com/modpack/distribution.json'
 
 const api = new DistributionAPI(
     ConfigManager.getLauncherDirectory(),
