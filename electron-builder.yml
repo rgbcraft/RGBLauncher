@@ -1,7 +1,6 @@
 appId: 'rgblauncher'
 productName: 'RGB Launcher'
 artifactName: '${productName}-${version}-${arch}.${ext}'
-author: 'RGBcraft Team'
 
 copyright: 'Copyright © 2023 RGBcraft'
 
