@@ -36,6 +36,7 @@ const MinecraftServerListPing = require('minecraft-status').MinecraftServerListP
 
 const StreamZip = require('node-stream-zip')
 const fs = require('fs')
+const timers = require('timers')
 
 // Launch Elements
 const launch_content = document.getElementById('launch_content')
@@ -162,6 +163,10 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         toggleLaunchArea(true)
         setLaunchDetails('Scaricamento modpack')
         setLaunchPercentage(0)
+        let before = Date.now()
+        let now = Date.now()
+        let diff = 0
+        let speed_counter = 0
         // eslint-disable-next-line no-constant-condition
         while (true) {
             const {done, value} = await reader.read()
@@ -170,6 +175,16 @@ document.getElementById('launch_button').addEventListener('click', async e => {
             }
             filestream.write(value)
             received_length += value.length
+            speed_counter += value.length
+
+            now = Date.now()
+            diff = now - before
+            if (diff >= 1000) {
+                let mb = (speed_counter / 1024 / 1024 * 1000 / diff).toFixed(2)
+                setLaunchDetails(`Scaricamento: ${mb}MB/s`)
+                speed_counter = 0
+                before = now
+            }
 
             setLaunchPercentage(Math.floor(received_length / max * 100))
             // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
@@ -186,6 +201,10 @@ document.getElementById('launch_button').addEventListener('click', async e => {
             setLaunchDetails('Scaricamento client')
             setLaunchPercentage(0)
             let filestream = fs.createWriteStream(client)
+            let before = Date.now()
+            let now = Date.now()
+            let diff = 0
+            let speed_counter = 0
 
             // eslint-disable-next-line no-constant-condition
             while (true) {
@@ -195,6 +214,16 @@ document.getElementById('launch_button').addEventListener('click', async e => {
                 }
                 filestream.write(value)
                 received_length += value.length
+                speed_counter += value.length
+
+                now = Date.now()
+                diff = now - before
+                if (diff >= 1000) {
+                    let mb = (speed_counter / 1024 / 1024 * 1000 / diff).toFixed(2)
+                    setLaunchDetails(`Scaricamento: ${mb}MB/s`)
+                    speed_counter = 0
+                    before = now
+                }
 
                 setLaunchPercentage(Math.floor(received_length / max * 100))
                 // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
@@ -301,10 +330,10 @@ function updateSelectedServer(serv) {
 
 // Real text is set in uibinder.js on distributionIndexDone.
 server_selection_button.innerHTML = '\u2022 Caricando..'
-server_selection_button.onclick = async e => {
-    e.target.blur()
-    await toggleServerSelection(true)
-}
+// server_selection_button.onclick = async e => {
+//     e.target.blur()
+//     await toggleServerSelection(true)
+// }
 
 // Update Mojang Status Color
 const refreshMojangStatuses = async function () {
