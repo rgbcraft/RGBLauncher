@@ -46,6 +46,9 @@ class ProcessBuilder {
         args.push('-Xms' + ConfigManager.getMinRAM(this.server.rawServer.id))
         args = args.concat(ConfigManager.getJVMOptions(this.server.rawServer.id))
         args.push('-Djava.library.path=' + path.join(bin, 'natives'))
+        args.push('-Dfml.ignoreInvalidMinecraftCertificates=true')
+        args.push('-Dfml.ignorePatchDiscrepancies=true')
+        args.push('-Dminecraft.applet.TargetDirectory=.')
         args.push('net.technicpack.legacywrapper.Launch')
         args = args.concat(this._resolveForgeArgs())
 
@@ -75,6 +78,7 @@ class ProcessBuilder {
         //
 
         logger.info('Launch Arguments:', args)
+        logger.info(args.join(' '))
 
         const child = child_process.spawn(ConfigManager.getJavaExecutable(this.server.rawServer.id), args, {
             cwd: this.gameDir,
@@ -357,7 +361,7 @@ class ProcessBuilder {
         // Java Arguments
         if (process.platform === 'darwin') {
             args.push('-Xdock:name=RGBLauncher')
-            args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'minecraft.icns'))
+            args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'RGB.icns'))
         }
         args.push('-Xmx' + ConfigManager.getMaxRAM(this.server.rawServer.id))
         args.push('-Xms' + ConfigManager.getMinRAM(this.server.rawServer.id))
@@ -403,12 +407,10 @@ class ProcessBuilder {
             }
         }
 
-        //args.push('-Dlog4j.configurationFile=D:\\WesterosCraft\\game\\common\\assets\\log_configs\\client-1.12.xml')
-
         // Java Arguments
         if (process.platform === 'darwin') {
             args.push('-Xdock:name=RGBLauncher')
-            args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'minecraft.icns'))
+            args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'RGB.icns'))
         }
         args.push('-Xmx' + ConfigManager.getMaxRAM(this.server.rawServer.id))
         args.push('-Xms' + ConfigManager.getMinRAM(this.server.rawServer.id))
@@ -564,7 +566,7 @@ class ProcessBuilder {
         const argDiscovery = /\${*(.*)}/
 
         let mcArgs = []
-        mcArgs.push('${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}', '--icon', 'icon.png', '--title', 'RGBcraft')
+        mcArgs.push('${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}', '--icon', path.join(__dirname, '..', 'images', 'RGB.png'), '--title', 'RGBcraft')
 
         // Replace the declared variables with their proper values.
         for (let i = 0; i < mcArgs.length; ++i) {
@@ -583,7 +585,7 @@ class ProcessBuilder {
                         val = this.gameDir
                         break
                     case 'assets_root':
-                        val = path.join(this.commonDir, 'assets')
+                        val = path.join(this.gameDir, 'resources')
                         break
                     case 'assets_index_name':
                         val = this.versionData.assets

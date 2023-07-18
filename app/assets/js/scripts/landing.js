@@ -36,7 +36,6 @@ const MinecraftServerListPing = require('minecraft-status').MinecraftServerListP
 
 const StreamZip = require('node-stream-zip')
 const fs = require('fs')
-const timers = require('timers')
 
 // Launch Elements
 const launch_content = document.getElementById('launch_content')
@@ -135,6 +134,52 @@ function setTechnicVersion(version) {
     ConfigManager.save()
 }
 
+async function download_file(link, filename, display_name) {
+    let resp = await fetch(link)
+    let max = Number(resp.headers.get('content-length'))
+    let received_length = 0
+    const reader = resp.body.getReader()
+    let filestream = fs.createWriteStream(filename)
+    toggleLaunchArea(true)
+    setLaunchDetails(`Scaricamento ${display_name}`)
+    setLaunchPercentage(0)
+    let before = Date.now()
+    let now = Date.now()
+    let diff = 0
+    let speed_counter = 0
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const {done, value} = await reader.read()
+        if (done) {
+            break
+        }
+        filestream.write(value)
+        received_length += value.length
+        speed_counter += value.length
+
+        now = Date.now()
+        diff = now - before
+        if (diff >= 1000) {
+            let mb = (speed_counter / 1024 / 1024 * 1000 / diff).toFixed(2)
+            setLaunchDetails(`Scaricamento: ${mb}MB/s`)
+            speed_counter = 0
+            before = now
+        }
+
+        setLaunchPercentage(Math.floor(received_length / max * 100))
+    }
+}
+
+async function check_and_download(link, filename, dir, display_name) {
+    if (!fs.existsSync(filename)) {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, {recursive: true})
+        }
+        await download_file(link, filename, display_name)
+    }
+}
+
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
     if (await isNeedsUpdate()) {
@@ -146,94 +191,74 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         let data = JSON.parse(await resp.text())
         let download_url = data.url
         let version = data.version
-        resp = await fetch(download_url)
-        let max = Number(resp.headers.get('content-length'))
-        let received_length = 0
-        const reader = resp.body.getReader()
-        let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.name)
+        let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id)
         let bin = path.join(dir, 'bin')
+        let lib = path.join(dir, 'lib')
+        let natives = path.join(bin, 'natives')
         let modpack = path.join(dir, 'modpack.zip')
         let client = path.join(bin, 'minecraft.jar')
+        let launchwrapper = path.join(bin, 'legacywrapper-1.2.1.jar')
+        let jopt = path.join(bin, 'jopt-simple-4.5.jar')
+        let asm_all = path.join(lib, 'asm-all-4.0.jar')
+        let jinput = path.join(bin, 'jinput.jar')
+        let jutils = path.join(bin, 'jutils-1.0.0.jar')
+        let lwjgl = path.join(bin, 'lwjgl.jar')
+        let lwjgl_util = path.join(bin, 'lwjgl_util.jar')
+        let lwjgl_natives = path.join(dir, 'lwjgl_natives.jar')
+        let jinput_natives = path.join(dir, 'jinput_natives.jar')
+        let argo = path.join(lib, 'argo-2.25.jar')
+        let bcprov = path.join(lib, 'bcprov-jdk15on-147.jar')
+        let guava = path.join(lib, 'guava-12.0.1.jar')
+        let lwjgl_natives_url
+        let jinput_natives_url
+        switch (process.platform) {
+            case 'linux':
+                lwjgl_natives_url = 'https://libraries.minecraft.net/org/lwjgl/lwjgl/lwjgl-platform/2.9.3/lwjgl-platform-2.9.3-natives-linux.jar'
+                jinput_natives_url = 'https://libraries.minecraft.net/net/java/jinput/jinput-platform/2.0.5/jinput-platform-2.0.5-natives-linux.jar'
+                break
+            case 'darwin':
+                lwjgl_natives_url = 'https://libraries.minecraft.net/org/lwjgl/lwjgl/lwjgl-platform/2.9.3/lwjgl-platform-2.9.3-natives-osx.jar'
+                jinput_natives_url = 'https://libraries.minecraft.net/net/java/jinput/jinput-platform/2.0.5/jinput-platform-2.0.5-natives-osx.jar'
+                break
+            case 'win32':
+                lwjgl_natives_url = 'https://libraries.minecraft.net/org/lwjgl/lwjgl/lwjgl-platform/2.9.3/lwjgl-platform-2.9.3-natives-windows.jar'
+                jinput_natives_url = 'https://libraries.minecraft.net/net/java/jinput/jinput-platform/2.0.5/jinput-platform-2.0.5-natives-windows.jar'
+                break
+        }
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, {recursive: true})
         }
-        let filestream = fs.createWriteStream(modpack)
-
         document.getElementById('launch_button').disabled = true
-        toggleLaunchArea(true)
-        setLaunchDetails('Scaricamento modpack')
-        setLaunchPercentage(0)
-        let before = Date.now()
-        let now = Date.now()
-        let diff = 0
-        let speed_counter = 0
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            const {done, value} = await reader.read()
-            if (done) {
-                break
-            }
-            filestream.write(value)
-            received_length += value.length
-            speed_counter += value.length
+        await download_file(download_url, modpack, 'modpack')
+        await check_and_download('http://132.145.124.6/minecraft.jar', client, bin, 'minecraft')
+        await check_and_download('http://132.145.124.6/legacywrapper-1.2.1.jar', launchwrapper, bin, 'wrapper')
+        await check_and_download('https://libraries.minecraft.net/net/sf/jopt-simple/jopt-simple/4.5/jopt-simple-4.5.jar', jopt, bin, 'jopt')
+        await check_and_download('http://132.145.124.6/asm-all-4.0.jar', asm_all, lib, 'asm-all')
+        await check_and_download('https://libraries.minecraft.net/net/java/jinput/jinput/2.0.5/jinput-2.0.5.jar', jinput, bin, 'jinput')
+        await check_and_download('https://libraries.minecraft.net/net/java/jutils/jutils/1.0.0/jutils-1.0.0.jar', jutils, bin, 'jutils')
+        await check_and_download('https://libraries.minecraft.net/org/lwjgl/lwjgl/lwjgl/2.9.3/lwjgl-2.9.3.jar', lwjgl, bin, 'lwjgl')
+        await check_and_download('https://libraries.minecraft.net/org/lwjgl/lwjgl/lwjgl_util/2.9.3/lwjgl_util-2.9.3.jar', lwjgl_util, bin, 'lwjgl util')
+        await check_and_download(lwjgl_natives_url, lwjgl_natives, dir, 'lwjgl nativo')
+        await check_and_download(jinput_natives_url, jinput_natives, dir, 'jinput nativo')
+        await check_and_download('https://repo1.maven.org/maven2/net/sourceforge/argo/argo/2.25/argo-2.25.jar', argo, lib, 'argo')
+        await check_and_download('https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.47/bcprov-jdk15on-1.47.jar', bcprov, lib, 'bcprov')
+        await check_and_download('https://repo1.maven.org/maven2/com/google/guava/guava/12.0.1/guava-12.0.1.jar', guava, lib, 'guava')
 
-            now = Date.now()
-            diff = now - before
-            if (diff >= 1000) {
-                let mb = (speed_counter / 1024 / 1024 * 1000 / diff).toFixed(2)
-                setLaunchDetails(`Scaricamento: ${mb}MB/s`)
-                speed_counter = 0
-                before = now
-            }
-
-            setLaunchPercentage(Math.floor(received_length / max * 100))
-            // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
-        }
-
-        if (!fs.existsSync(client)) {
-            if (!fs.existsSync(bin)) {
-                fs.mkdirSync(bin, {recursive: true})
-            }
-            resp = await fetch('https://launcher.mojang.com/v1/objects/53ed4b9d5c358ecfff2d8b846b4427b888287028/client.jar')
-            const reader = resp.body.getReader()
-            max = Number(resp.headers.get('content-length'))
-            received_length = 0
-            setLaunchDetails('Scaricamento client')
-            setLaunchPercentage(0)
-            let filestream = fs.createWriteStream(client)
-            let before = Date.now()
-            let now = Date.now()
-            let diff = 0
-            let speed_counter = 0
-
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-                const {done, value} = await reader.read()
-                if (done) {
-                    break
-                }
-                filestream.write(value)
-                received_length += value.length
-                speed_counter += value.length
-
-                now = Date.now()
-                diff = now - before
-                if (diff >= 1000) {
-                    let mb = (speed_counter / 1024 / 1024 * 1000 / diff).toFixed(2)
-                    setLaunchDetails(`Scaricamento: ${mb}MB/s`)
-                    speed_counter = 0
-                    before = now
-                }
-
-                setLaunchPercentage(Math.floor(received_length / max * 100))
-                // document.getElementById('launch_button').innerText = `DOWNLOAD: ${(received_length / max * 100).toFixed(2)}%`
-            }
-        }
-        // document.getElementById('launch_button').innerText = 'ESTRAZIONE..'
         setLaunchPercentage(0)
         setLaunchDetails('Installazione modpack')
 
-        const zip = new StreamZip.async({file: modpack})
+        let zip = new StreamZip.async({file: lwjgl_natives})
+        await zip.extract(null, natives)
+        await zip.close()
+        fs.rmSync(lwjgl_natives)
+        setLaunchPercentage(10)
+        zip = new StreamZip.async({file: jinput_natives})
+        await zip.extract(null, natives)
+        await zip.close()
+        fs.rmSync(jinput_natives)
+        setLaunchPercentage(20)
+
+        zip = new StreamZip.async({file: modpack})
         // let count = await zip.entriesCount
         // let current = 0
         // zip.on('entry', entry => {
