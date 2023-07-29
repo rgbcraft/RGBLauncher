@@ -1,5 +1,5 @@
 appId: 'rgblauncher'
-productName: 'RGB Launcher'
+productName: 'RGBcraft'
 artifactName: '${productName}-${version}-${arch}.${ext}'
 
 copyright: 'Copyright © 2023 RGBcraft'
@@ -16,16 +16,13 @@ extraResources:
 # Windows Configuration
 win:
   target:
-    - target: 'msi'
-      arch:
-        - x64
-    - target: 'portable'
+    - target: 'nsis-web'
       arch:
         - x64
   publisherName: 'RGBcraft Team'
 
 # Windows Installer Configuration
-nsis:
+nsisWeb:
   oneClick: false
   perMachine: false
   allowElevation: true
@@ -46,19 +43,9 @@ linux:
     - target: 'AppImage'
       arch:
         - x64
-        - arm64
     - target: 'deb'
       arch:
         - x64
-        - arm64
-    - target: 'rpm'
-      arch:
-        - x64
-        - arm64
-    - target: 'tar.xz'
-      arch:
-        - x64
-        - arm64
   maintainer: 'RGBcraft Team'
   vendor: 'RGBcraft Team'
   synopsis: 'RGB Launcher'

@@ -49,7 +49,11 @@ class ProcessBuilder {
         args.push('-Dfml.ignoreInvalidMinecraftCertificates=true')
         args.push('-Dfml.ignorePatchDiscrepancies=true')
         args.push('-Dminecraft.applet.TargetDirectory=.')
-        args.push('net.technicpack.legacywrapper.Launch')
+        if (this.server.rawServer.id.endsWith('FPS')) {
+            args.push('net.minecraft.client.Minecraft')
+        } else {
+            args.push('net.technicpack.legacywrapper.Launch')
+        }
         args = args.concat(this._resolveForgeArgs())
 
         // build() {
@@ -321,9 +325,9 @@ class ProcessBuilder {
     _processAutoConnectArg(args) {
         if (ConfigManager.getAutoConnect() && this.server.rawServer.autoconnect) {
             args.push('--server')
-            args.push(this.server.hostname)
+            args.push('kamino.a-centauri.com')
             args.push('--port')
-            args.push(this.server.port)
+            args.push('25565')
         }
     }
 
@@ -378,185 +382,6 @@ class ProcessBuilder {
     }
 
     /**
-     * Construct the argument array that will be passed to the JVM process.
-     * This function is for 1.13+
-     *
-     * Note: Required Libs https://github.com/MinecraftForge/MinecraftForge/blob/af98088d04186452cb364280340124dfd4766a5c/src/fmllauncher/java/net/minecraftforge/fml/loading/LibraryFinder.java#L82
-     *
-     * @param {Array.<Object>} mods An array of enabled mods which will be launched with this process.
-     * @param {string} tempNativePath The path to store the native libraries.
-     * @returns {Array.<string>} An array containing the full JVM arguments for this process.
-     */
-    _constructJVMArguments113(mods, tempNativePath) {
-
-        const argDiscovery = /\${*(.*)}/
-
-        // JVM Arguments First
-        let args = this.versionData.arguments.jvm
-
-        // Debug securejarhandler
-        // args.push('-Dbsl.debug=true')
-
-        if (this.forgeData.arguments.jvm != null) {
-            for (const argStr of this.forgeData.arguments.jvm) {
-                args.push(argStr
-                    .replaceAll('${library_directory}', this.libPath)
-                    .replaceAll('${classpath_separator}', ProcessBuilder.getClasspathSeparator())
-                    .replaceAll('${version_name}', this.forgeData.id)
-                )
-            }
-        }
-
-        // Java Arguments
-        if (process.platform === 'darwin') {
-            args.push('-Xdock:name=RGBLauncher')
-            args.push('-Xdock:icon=' + path.join(__dirname, '..', 'images', 'RGB.icns'))
-        }
-        args.push('-Xmx' + ConfigManager.getMaxRAM(this.server.rawServer.id))
-        args.push('-Xms' + ConfigManager.getMinRAM(this.server.rawServer.id))
-        args = args.concat(ConfigManager.getJVMOptions(this.server.rawServer.id))
-
-        // Main Java Class
-        args.push(this.forgeData.mainClass)
-
-        // Vanilla Arguments
-        args = args.concat(this.versionData.arguments.game)
-
-        for (let i = 0; i < args.length; i++) {
-            if (typeof args[i] === 'object' && args[i].rules != null) {
-
-                let checksum = 0
-                for (let rule of args[i].rules) {
-                    if (rule.os != null) {
-                        if (rule.os.name === getMojangOS()
-                            && (rule.os.version == null || new RegExp(rule.os.version).test(os.release))) {
-                            if (rule.action === 'allow') {
-                                checksum++
-                            }
-                        } else {
-                            if (rule.action === 'disallow') {
-                                checksum++
-                            }
-                        }
-                    } else if (rule.features != null) {
-                        // We don't have many 'features' in the index at the moment.
-                        // This should be fine for a while.
-                        if (rule.features.has_custom_resolution != null && rule.features.has_custom_resolution === true) {
-                            if (ConfigManager.getFullscreen()) {
-                                args[i].value = [
-                                    '--fullscreen',
-                                    'true'
-                                ]
-                            }
-                            checksum++
-                        }
-                    }
-                }
-
-                // TODO splice not push
-                if (checksum === args[i].rules.length) {
-                    if (typeof args[i].value === 'string') {
-                        args[i] = args[i].value
-                    } else if (typeof args[i].value === 'object') {
-                        //args = args.concat(args[i].value)
-                        args.splice(i, 1, ...args[i].value)
-                    }
-
-                    // Decrement i to reprocess the resolved value
-                    i--
-                } else {
-                    args[i] = null
-                }
-
-            } else if (typeof args[i] === 'string') {
-                if (argDiscovery.test(args[i])) {
-                    const identifier = args[i].match(argDiscovery)[1]
-                    let val = null
-                    switch (identifier) {
-                        case 'auth_player_name':
-                            val = this.authUser.displayName.trim()
-                            break
-                        case 'version_name':
-                            //val = versionData.id
-                            val = this.server.rawServer.id
-                            break
-                        case 'game_directory':
-                            val = this.gameDir
-                            break
-                        case 'assets_root':
-                            val = path.join(this.commonDir, 'assets')
-                            break
-                        case 'assets_index_name':
-                            val = this.versionData.assets
-                            break
-                        case 'auth_uuid':
-                            val = this.authUser.uuid.trim()
-                            break
-                        case 'auth_access_token':
-                            val = this.authUser.accessToken
-                            break
-                        case 'user_type':
-                            val = this.authUser.type === 'microsoft' ? 'msa' : 'mojang'
-                            break
-                        case 'version_type':
-                            val = this.versionData.type
-                            break
-                        case 'resolution_width':
-                            val = ConfigManager.getGameWidth()
-                            break
-                        case 'resolution_height':
-                            val = ConfigManager.getGameHeight()
-                            break
-                        case 'natives_directory':
-                            val = args[i].replace(argDiscovery, tempNativePath)
-                            break
-                        case 'launcher_name':
-                            val = args[i].replace(argDiscovery, 'Helios-Launcher')
-                            break
-                        case 'launcher_version':
-                            val = args[i].replace(argDiscovery, this.launcherVersion)
-                            break
-                        case 'classpath':
-                            val = this.classpathArg(mods, tempNativePath).join(ProcessBuilder.getClasspathSeparator())
-                            break
-                    }
-                    if (val != null) {
-                        args[i] = val
-                    }
-                }
-            }
-        }
-
-        // Autoconnect
-        let isAutoconnectBroken
-        try {
-            isAutoconnectBroken = ProcessBuilder.isAutoconnectBroken(this.forgeData.id.split('-')[2])
-        } catch (err) {
-            logger.error(err)
-            logger.error('Forge version format changed.. assuming autoconnect works.')
-            logger.debug('Forge version:', this.forgeData.id)
-        }
-
-        if (isAutoconnectBroken) {
-            logger.error('Server autoconnect disabled on Forge 1.15.2 for builds earlier than 31.2.15 due to OpenGL Stack Overflow issue.')
-            logger.error('Please upgrade your Forge version to at least 31.2.15!')
-        } else {
-            this._processAutoConnectArg(args)
-        }
-
-
-        // Forge Specific Arguments
-        args = args.concat(this.forgeData.arguments.game)
-
-        // Filter null values
-        args = args.filter(arg => {
-            return arg != null
-        })
-
-        return args
-    }
-
-    /**
      * Resolve the arguments required by forge.
      *
      * @returns {Array.<string>} An array containing the arguments required by forge.
@@ -566,7 +391,10 @@ class ProcessBuilder {
         const argDiscovery = /\${*(.*)}/
 
         let mcArgs = []
-        mcArgs.push('${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}', '--icon', path.join(__dirname, '..', 'images', 'RGB.png'), '--title', 'RGBcraft')
+        mcArgs.push(
+            '${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}',
+            '--icon', path.join(__dirname, '..', 'images', 'RGB.png'), '--title', this.server.rawServer.name
+        )
 
         // Replace the declared variables with their proper values.
         for (let i = 0; i < mcArgs.length; ++i) {

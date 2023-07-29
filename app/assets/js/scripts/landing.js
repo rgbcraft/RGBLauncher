@@ -194,6 +194,7 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id)
         let bin = path.join(dir, 'bin')
         let lib = path.join(dir, 'lib')
+        let mods = path.join(dir, 'mods')
         let natives = path.join(bin, 'natives')
         let modpack = path.join(dir, 'modpack.zip')
         let client = path.join(bin, 'minecraft.jar')
@@ -228,12 +229,20 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, {recursive: true})
         }
+        if (fs.existsSync(mods)) {
+            let files = fs.readdirSync(mods)
+            for (let file of files) {
+                if (file.endsWith('.zip') || file.endsWith('.jar') || file.endsWith('.litemod')) {
+                    fs.rmSync(path.join(mods, file))
+                }
+            }
+        }
         document.getElementById('launch_button').disabled = true
         await download_file(download_url, modpack, 'modpack')
-        await check_and_download('http://132.145.124.6/minecraft.jar', client, bin, 'minecraft')
-        await check_and_download('http://132.145.124.6/legacywrapper-1.2.1.jar', launchwrapper, bin, 'wrapper')
+        await check_and_download('http://cdn.rgbcraft.com/modpack/enn/minecraft.jar', client, bin, 'minecraft')
+        await check_and_download('http://cdn.rgbcraft.com/modpack/enn/legacywrapper-1.2.1.jar', launchwrapper, bin, 'wrapper')
         await check_and_download('https://libraries.minecraft.net/net/sf/jopt-simple/jopt-simple/4.5/jopt-simple-4.5.jar', jopt, bin, 'jopt')
-        await check_and_download('http://132.145.124.6/asm-all-4.0.jar', asm_all, lib, 'asm-all')
+        await check_and_download('http://cdn.rgbcraft.com/modpack/enn/asm-all-4.0.jar', asm_all, lib, 'asm-all')
         await check_and_download('https://libraries.minecraft.net/net/java/jinput/jinput/2.0.5/jinput-2.0.5.jar', jinput, bin, 'jinput')
         await check_and_download('https://libraries.minecraft.net/net/java/jutils/jutils/1.0.0/jutils-1.0.0.jar', jutils, bin, 'jutils')
         await check_and_download('https://libraries.minecraft.net/org/lwjgl/lwjgl/lwjgl/2.9.3/lwjgl-2.9.3.jar', lwjgl, bin, 'lwjgl')
