@@ -393,7 +393,7 @@ class ProcessBuilder {
         let mcArgs = []
         mcArgs.push(
             '${auth_player_name}', '--assetsDir', '${assets_root}', '--gameDir', '${game_directory}',
-            '--icon', path.join(__dirname, '..', 'images', 'RGB.png'), '--title', this.server.rawServer.name
+            '--icon', 'icon.png', '--title', this.server.rawServer.name
         )
 
         // Replace the declared variables with their proper values.

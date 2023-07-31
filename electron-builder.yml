@@ -1,6 +1,6 @@
 appId: 'rgblauncher'
 productName: 'RGBcraft'
-artifactName: '${productName}-${version}-${arch}.${ext}'
+artifactName: '${productName}-${arch}.${ext}'
 
 copyright: 'Copyright © 2023 RGBcraft'
 
@@ -48,8 +48,9 @@ linux:
       arch:
         - x64
   maintainer: 'RGBcraft Team'
+  icon: "build/icon-1024x1024.png"
   vendor: 'RGBcraft Team'
-  synopsis: 'RGB Launcher'
+  synopsis: 'RGBcraft'
   description: 'RGBcraft Launcher.'
   category: 'Game'
   desktop:

@@ -121,7 +121,21 @@ async function isNeedsUpdate() {
     let needs = !(version === cfg.version)
     ConfigManager.setNeedsUpdate(needs)
 
-    return needs && !updating
+    let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id)
+    let bin = path.join(dir, 'bin')
+    let lib = path.join(dir, 'lib')
+    let mods = path.join(dir, 'mods')
+    let natives = path.join(bin, 'natives')
+
+    return (needs && !updating)
+        || !fs.existsSync(bin)
+        || !fs.existsSync(lib)
+        || !fs.existsSync(mods)
+        || !fs.existsSync(natives)
+        || !fs.existsSync(path.join(bin, 'minecraft.jar'))
+        || !fs.existsSync(path.join(bin, 'modpack.jar'))
+        || !fs.existsSync(path.join(bin, 'lwjgl.jar'))
+        || !fs.existsSync(path.join(dir, 'icon.png'))
 }
 
 function setUpdating(bool) {
@@ -210,6 +224,7 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         let argo = path.join(lib, 'argo-2.25.jar')
         let bcprov = path.join(lib, 'bcprov-jdk15on-147.jar')
         let guava = path.join(lib, 'guava-12.0.1.jar')
+        let icon = path.join(dir, 'icon.png')
         let lwjgl_natives_url
         let jinput_natives_url
         switch (process.platform) {
@@ -252,6 +267,7 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         await check_and_download('https://repo1.maven.org/maven2/net/sourceforge/argo/argo/2.25/argo-2.25.jar', argo, lib, 'argo')
         await check_and_download('https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.47/bcprov-jdk15on-1.47.jar', bcprov, lib, 'bcprov')
         await check_and_download('https://repo1.maven.org/maven2/com/google/guava/guava/12.0.1/guava-12.0.1.jar', guava, lib, 'guava')
+        await check_and_download('http://cdn.rgbcraft.com/modpack/enn/RGB.png', icon, dir, 'icona')
 
         setLaunchPercentage(0)
         setLaunchDetails('Installazione modpack')
@@ -653,7 +669,7 @@ async function downloadJava(effectiveJavaOptions, launchAfter = true) {
 let proc
 // Joined server regex
 // Change this if your server uses something different.
-const GAME_LAUNCH_REGEX = /^\[.+\]: (?:MinecraftForge .+ Initialized|ModLauncher .+ starting: .+)$/
+const GAME_LAUNCH_REGEX = /^.+\[.+\] \[.+\] (?:LWJGL .*)$/
 const MIN_LINGER = 5000
 
 async function dlAsync(login = true) {
@@ -771,6 +787,7 @@ async function dlAsync(login = true) {
         const onLoadComplete = () => {
             toggleLaunchArea(false)
             proc.stdout.removeListener('data', tempListener)
+            proc.stderr.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
         }
         const start = Date.now()
@@ -804,17 +821,15 @@ async function dlAsync(login = true) {
 
             // Bind listeners to stdout.
             proc.stdout.on('data', tempListener)
+            proc.stderr.on('data', tempListener)
             proc.stderr.on('data', gameErrorListener)
 
             setLaunchDetails('Fatto. Divertiti sul server!')
         } catch (err) {
-
             loggerLaunchSuite.error('Error during launch', err)
-            showLaunchFailure('Error During Launch', 'Please check the console (CTRL + Shift + i) for more details.')
-
+            showLaunchFailure('Errore durante il lancio', 'Per favore, controlla la console (CTRL + Shift + i) per più informazioni.')
         }
     }
-
 }
 
 /**
