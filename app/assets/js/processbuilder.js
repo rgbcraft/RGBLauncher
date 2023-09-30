@@ -105,6 +105,7 @@ class ProcessBuilder {
         })
         child.on('close', (code, signal) => {
             logger.info('Exited with code', code)
+            remote.BrowserWindow.getAllWindows()[0].show()
         })
 
         return child

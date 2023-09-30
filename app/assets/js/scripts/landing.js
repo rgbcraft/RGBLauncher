@@ -789,6 +789,7 @@ async function dlAsync(login = true) {
             proc.stdout.removeListener('data', tempListener)
             proc.stderr.removeListener('data', tempListener)
             proc.stderr.removeListener('data', gameErrorListener)
+            remote.BrowserWindow.getAllWindows()[0].hide()
         }
         const start = Date.now()
 
