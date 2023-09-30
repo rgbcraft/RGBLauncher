@@ -448,13 +448,12 @@ class ProcessBuilder {
         if (ConfigManager.getFullscreen()) {
             mcArgs.push('--fullscreen')
             mcArgs.push(true)
+        } else {
+            mcArgs.push('--width')
+            mcArgs.push(ConfigManager.getGameWidth())
+            mcArgs.push('--height')
+            mcArgs.push(ConfigManager.getGameHeight())
         }
-        // else {
-        //     mcArgs.push('--width')
-        //     mcArgs.push(ConfigManager.getGameWidth())
-        //     mcArgs.push('--height')
-        //     mcArgs.push(ConfigManager.getGameHeight())
-        // }
 
         // // Mod List File Argument
         // mcArgs.push('--modListFile')
