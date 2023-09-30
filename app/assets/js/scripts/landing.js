@@ -194,6 +194,38 @@ async function check_and_download(link, filename, dir, display_name) {
     }
 }
 
+let shiftDown = false
+let ctrlDown = false
+
+const handleKeyDown = async (event) => {
+    // You can put code here to handle the keypress.
+    if (shiftDown && ctrlDown && event.key === 'T') {
+        let server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
+        let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id)
+        let bin = path.join(dir, 'bin')
+        let client = path.join(bin, 'modpack.jar')
+        fs.rmSync(client)
+        refreshServerStatus(true)
+    } else {
+        if (event.key === 'Shift') {
+            shiftDown = true
+        } else if (event.key === 'Control') {
+            ctrlDown = true
+        }
+    }
+}
+
+const handleKeyUp = (event) => {
+    if (event.key === 'Shift') {
+        shiftDown = false
+    } else if (event.key === 'Control') {
+        ctrlDown = false
+    }
+}
+
+window.addEventListener('keydown', handleKeyDown, true)
+window.addEventListener('keyup', handleKeyUp, true)
+
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
     if (await isNeedsUpdate()) {
