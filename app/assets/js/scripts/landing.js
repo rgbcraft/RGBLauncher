@@ -135,7 +135,6 @@ async function isNeedsUpdate() {
         || !fs.existsSync(path.join(bin, 'minecraft.jar'))
         || !fs.existsSync(path.join(bin, 'modpack.jar'))
         || !fs.existsSync(path.join(bin, 'lwjgl.jar'))
-        || !fs.existsSync(path.join(dir, 'icon.png'))
 }
 
 function setUpdating(bool) {
@@ -228,16 +227,18 @@ window.addEventListener('keyup', handleKeyUp, true)
 
 // Bind launch button
 document.getElementById('launch_button').addEventListener('click', async e => {
+    let server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
+    let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id)
+    let icon = path.join(dir, 'icon.png')
+
     if (await isNeedsUpdate()) {
         loggerLanding.info('Updating..')
         setUpdating(true)
 
-        let server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
         let resp = await fetch(server.technic)
         let data = JSON.parse(await resp.text())
         let download_url = data.url
         let version = data.version
-        let dir = path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id)
         let bin = path.join(dir, 'bin')
         let lib = path.join(dir, 'lib')
         let mods = path.join(dir, 'mods')
@@ -256,7 +257,6 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         let argo = path.join(lib, 'argo-2.25.jar')
         let bcprov = path.join(lib, 'bcprov-jdk15on-147.jar')
         let guava = path.join(lib, 'guava-12.0.1.jar')
-        let icon = path.join(dir, 'icon.png')
         let lwjgl_natives_url
         let jinput_natives_url
         switch (process.platform) {
@@ -337,6 +337,8 @@ document.getElementById('launch_button').addEventListener('click', async e => {
         document.getElementById('launch_button').innerText = 'GIOCA'
 
         return
+    } else if (!fs.existsSync(path.join(ConfigManager.getInstanceDirectory(), server.rawServer.id, 'icon.png'))) {
+        await check_and_download('http://cdn.rgbcraft.com/modpack/enn/RGB.png', icon, dir, 'icona')
     }
 
     loggerLanding.info('Launching game..')
