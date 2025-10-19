@@ -1,6 +1,6 @@
 {
   "name": "rgblauncher",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "productName": "RGB Launcher",
   "description": "RGBcraft Launcher",
   "author": "Enn3Developer (https://github.com/Enn3Developer/)",
@@ -30,11 +30,11 @@
     "electron-updater": "^6.1.1",
     "fs-extra": "^11.1.1",
     "github-syntax-dark": "^0.5.0",
+    "jquery": "^3.7.0",
     "minecraft-status": "^1.1.0",
     "node-stream-zip": "^1.15.0",
-    "rgblauncher-core": "^1.0.1",
-    "rgblauncher-distribution-types": "^1.0.0",
-    "jquery": "^3.7.0",
+    "rgblauncher-core": "file:../rgblauncher-core",
+    "rgblauncher-distribution-types": "file:../rgblauncher-distribution-types",
     "semver": "^7.5.4"
   },
   "devDependencies": {
