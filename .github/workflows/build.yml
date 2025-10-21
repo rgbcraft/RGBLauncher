@@ -32,7 +32,15 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-without-markdown
-          path: |
-            dist
-            !dist/**/*.md
+          name: RGBcraft-arm64.dmg
+          path: dist/RGBcraft-arm64.dmg
+          name: RGBcraft-x64.dmg
+          path: dist/RGBcraft-x64.dmg
+          name: RGBcraft-x86_64.AppImage
+          path: dist/RGBcraft-x86_64.AppImage
+          name: RGBcraft-amd64.deb
+          path: dist/RGBcraft-amd64.deb 
+          name: rgblauncher-1.4.1-x64.nsis.7z
+          path: dist/rgblauncher-1.4.1-x64.nsis.7z
+          name: RGBcraft-x64.exe
+          path: dist/RGBcraft-x64.exe
