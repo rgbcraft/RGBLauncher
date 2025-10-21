@@ -491,7 +491,7 @@ const refreshServerStatus = async (fade = false) => {
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
 
     let pLabel = 'SERVER'
-    let pVal = 'OFFLINE'
+    let pVal = 'ONLINE'
 
     try {
         let resp
