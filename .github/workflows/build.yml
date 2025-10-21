@@ -29,33 +29,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
         shell: bash
-      - name: Archive production artifacts (Mac arm)
-        uses: actions/upload-artifact@v4
-        with:
-          name: RGBcraft-arm64.dmg
-          path: dist/RGBcraft-arm64.dmg
-      - name: Archive production artifacts (Mac x86)
-        uses: actions/upload-artifact@v4
-        with:
-          name: RGBcraft-x64.dmg
-          path: dist/RGBcraft-x64.dmg
-      - name: Archive production artifacts (linux appimage)
-        uses: actions/upload-artifact@v4
-        with:
-          name: RGBcraft-x86_64.AppImage
-          path: dist/RGBcraft-x86_64.AppImage
-      - name: Archive production artifacts (Linux DEB)
-        uses: actions/upload-artifact@v4
-        with:
-          name: RGBcraft-amd64.deb
-          path: dist/RGBcraft-amd64.deb
-      - name: Archive production artifacts (Win installer pkg)
-        uses: actions/upload-artifact@v4
-        with:
-          name: rgblauncher-1.4.1-x64.nsis.7z
-          path: dist/rgblauncher-1.4.1-x64.nsis.7z
-      - name: Archive production artifacts (Win installer stub)
-        uses: actions/upload-artifact@v4
-        with:
-          name: RGBcraft-x64.exe
-          path: dist/RGBcraft-x64.exe
